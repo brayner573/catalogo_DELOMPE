@@ -19,7 +19,7 @@
                 <input type="text" id="searchInput" placeholder="Buscar por nombre...">
                 <button id="searchBtn"><i class="fas fa-search"></i></button>
             </div>
-            <a href="#" id="adminLink" class="admin-link"><i class="fas fa-user-shield"></i> Administrador</a>
+            <a href="#" id="adminLink" class="admin-link"><i class="fas fa-user"></i> Mi Cuenta</a>
         </div>
     </header>
 
@@ -59,10 +59,16 @@
     </div>
     </div> <!-- Fin catalogSection -->
 
-    <!-- Login Section -->
+    <!-- Login / Register Section -->
     <div id="loginSection" class="login-container" style="display: none;">
-        <h2>Acceso Administrador</h2>
+        <div class="auth-tabs">
+            <button id="tabLogin" class="auth-tab active">Iniciar Sesión</button>
+            <button id="tabRegister" class="auth-tab">Registrarse</button>
+        </div>
+
+        <!-- Formulario Login -->
         <form id="loginForm">
+            <h2>Acceso</h2>
             <div class="form-group">
                 <label for="email">Correo Electrónico</label>
                 <input type="email" id="email" required autocomplete="email">
@@ -74,6 +80,41 @@
             <button type="submit" class="btn-primary" id="loginBtn">Ingresar</button>
             <p id="loginError" style="color: red; margin-top: 10px; display: none; text-align: center;"></p>
         </form>
+
+        <!-- Formulario Registro -->
+        <form id="registerForm" style="display: none;">
+            <h2>Crear Cuenta</h2>
+            <div class="form-group">
+                <label for="regName">Nombre Completo</label>
+                <input type="text" id="regName" required autocomplete="name">
+            </div>
+            <div class="form-group">
+                <label for="regEmail">Correo Electrónico</label>
+                <input type="email" id="regEmail" required autocomplete="email">
+            </div>
+            <div class="form-group">
+                <label for="regPassword">Contraseña</label>
+                <input type="password" id="regPassword" required autocomplete="new-password">
+            </div>
+            <button type="submit" class="btn-primary" id="registerBtn">Registrarse</button>
+            <p id="registerError" style="color: red; margin-top: 10px; display: none; text-align: center;"></p>
+        </form>
+    </div>
+
+    <!-- Client Dashboard Section -->
+    <div id="clientDashboardSection" class="dashboard-container" style="display: none;">
+        <div class="dashboard-header">
+            <h2>Mi Cuenta</h2>
+            <div>
+                <a href="#" id="viewCatalogClientBtn" class="admin-link" style="color: var(--primary-color); margin-right: 15px;">Ver Catálogo</a>
+                <button id="logoutClientBtn" class="btn-danger"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
+            </div>
+        </div>
+        <div class="admin-card" style="text-align: center; padding: 3rem;">
+            <i class="fas fa-user-circle" style="font-size: 4rem; color: var(--accent-color); margin-bottom: 1rem;"></i>
+            <h3 id="clientWelcomeText">¡Hola! Bienvenido a tu cuenta.</h3>
+            <p>Desde aquí podrás ver tus compras y favoritos próximamente.</p>
+        </div>
     </div>
 
     <!-- Dashboard Section -->

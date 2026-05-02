@@ -1,17 +1,25 @@
 import { auth, db, storage } from './firebase-config.js';
-import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc, getDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-storage.js";
 
 // Elementos UI Autenticación y Navegación
 const loginSection = document.getElementById('loginSection');
 const dashboardSection = document.getElementById('dashboardSection');
 const catalogSection = document.getElementById('catalogSection');
+const clientDashboardSection = document.getElementById('clientDashboardSection');
 const loginForm = document.getElementById('loginForm');
+const registerForm = document.getElementById('registerForm');
 const loginError = document.getElementById('loginError');
+const registerError = document.getElementById('registerError');
 const logoutBtn = document.getElementById('logoutBtn');
+const logoutClientBtn = document.getElementById('logoutClientBtn');
 const adminLink = document.getElementById('adminLink');
 const viewCatalogBtn = document.getElementById('viewCatalogBtn');
+const viewCatalogClientBtn = document.getElementById('viewCatalogClientBtn');
+
+const tabLogin = document.getElementById('tabLogin');
+const tabRegister = document.getElementById('tabRegister');
 
 // Elementos UI Cámara
 const cameraView = document.getElementById('camera-view');
@@ -30,24 +38,38 @@ const adminProductsList = document.getElementById('adminProductsList');
 let imageFile = null; // Guardará el Blob de la cámara o File de galería
 let stream = null; // Stream de la cámara
 
-// --- 1. Autenticación y Navegación ---
-
 // Variables de estado
 let currentUser = null;
+let currentUserRole = null;
 
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
     currentUser = user;
     if (user) {
-        loadAdminProducts();
-        // Si estábamos en login, pasamos al dashboard
+        // Verificar rol
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists() && userDoc.data().role === 'client') {
+            currentUserRole = 'client';
+            document.getElementById('clientWelcomeText').textContent = `¡Hola, ${userDoc.data().name}! Bienvenido a tu cuenta.`;
+        } else {
+            currentUserRole = 'admin'; // Backward compatibility: si no hay doc, es el admin original
+            loadAdminProducts();
+        }
+
+        // Mostrar la vista correspondiente
         if (loginSection.style.display !== 'none') {
             loginSection.style.display = 'none';
-            dashboardSection.style.display = 'block';
+            if (currentUserRole === 'admin') {
+                dashboardSection.style.display = 'block';
+            } else {
+                clientDashboardSection.style.display = 'block';
+            }
         }
     } else {
-        // Si estábamos en dashboard, pasamos a login o catálogo
-        if (dashboardSection.style.display !== 'none') {
+        currentUserRole = null;
+        // Si estábamos en dashboard o panel de cliente, pasamos a catálogo
+        if (dashboardSection.style.display !== 'none' || clientDashboardSection.style.display !== 'none') {
             dashboardSection.style.display = 'none';
+            clientDashboardSection.style.display = 'none';
             loginSection.style.display = 'none';
             catalogSection.style.display = 'block';
         }
@@ -58,11 +80,16 @@ adminLink.addEventListener('click', (e) => {
     e.preventDefault();
     catalogSection.style.display = 'none';
     if (currentUser) {
-        dashboardSection.style.display = 'block';
+        if (currentUserRole === 'admin') {
+            dashboardSection.style.display = 'block';
+        } else {
+            clientDashboardSection.style.display = 'block';
+        }
         loginSection.style.display = 'none';
     } else {
         loginSection.style.display = 'block';
         dashboardSection.style.display = 'none';
+        clientDashboardSection.style.display = 'none';
     }
 });
 
@@ -71,6 +98,28 @@ viewCatalogBtn.addEventListener('click', (e) => {
     dashboardSection.style.display = 'none';
     loginSection.style.display = 'none';
     catalogSection.style.display = 'block';
+});
+
+viewCatalogClientBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    clientDashboardSection.style.display = 'none';
+    loginSection.style.display = 'none';
+    catalogSection.style.display = 'block';
+});
+
+// Manejo de pestañas
+tabLogin.addEventListener('click', () => {
+    tabLogin.classList.add('active');
+    tabRegister.classList.remove('active');
+    loginForm.style.display = 'block';
+    registerForm.style.display = 'none';
+});
+
+tabRegister.addEventListener('click', () => {
+    tabRegister.classList.add('active');
+    tabLogin.classList.remove('active');
+    registerForm.style.display = 'block';
+    loginForm.style.display = 'none';
 });
 
 loginForm.addEventListener('submit', async (e) => {
@@ -93,7 +142,47 @@ loginForm.addEventListener('submit', async (e) => {
     }
 });
 
+registerForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('regName').value;
+    const email = document.getElementById('regEmail').value;
+    const password = document.getElementById('regPassword').value;
+    const btn = document.getElementById('registerBtn');
+    
+    try {
+        btn.disabled = true;
+        btn.textContent = "Registrando...";
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        
+        // Guardar rol de cliente en Firestore
+        await setDoc(doc(db, "users", userCredential.user.uid), {
+            name: name,
+            email: email,
+            role: 'client',
+            createdAt: serverTimestamp()
+        });
+        
+        registerError.style.display = 'none';
+        registerForm.reset();
+    } catch (error) {
+        console.error("Error en registro:", error);
+        registerError.textContent = "Error: No se pudo crear la cuenta. Intenta de nuevo.";
+        registerError.style.display = 'block';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = "Registrarse";
+    }
+});
+
 logoutBtn.addEventListener('click', async () => {
+    try {
+        await signOut(auth);
+    } catch (error) {
+        console.error("Error cerrando sesión:", error);
+    }
+});
+
+logoutClientBtn.addEventListener('click', async () => {
     try {
         await signOut(auth);
     } catch (error) {

@@ -512,3 +512,28 @@ th {
         grid-template-columns: 1fr;
     }
 }
+
+/* Auth Tabs */
+.auth-tabs {
+    display: flex;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid var(--gray-light);
+}
+
+.auth-tab {
+    flex: 1;
+    padding: 1rem;
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--gray-medium);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.auth-tab.active {
+    color: var(--accent-color);
+    border-bottom: 3px solid var(--accent-color);
+    margin-bottom: -2px;
+}
