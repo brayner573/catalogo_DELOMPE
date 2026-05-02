@@ -156,7 +156,14 @@ loginForm.addEventListener('submit', async (e) => {
         await signInWithEmailAndPassword(auth, email, password);
         loginError.style.display = 'none';
     } catch (error) {
-        loginError.textContent = "Error: Correo o contraseña incorrectos.";
+        console.error("Error iniciando sesión:", error);
+        let errorMessage = "Error: Correo o contraseña incorrectos.";
+        if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+             errorMessage = "Error: Correo o contraseña incorrectos.";
+        } else if (error.message) {
+             errorMessage = `Error de Firebase: ${error.message}`;
+        }
+        loginError.textContent = errorMessage;
         loginError.style.display = 'block';
     } finally {
         btn.disabled = false;
@@ -176,11 +183,14 @@ registerForm.addEventListener('submit', async (e) => {
         btn.textContent = "Registrando...";
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         
-        // Guardar rol de cliente en Firestore
+        // Truco: Si el correo contiene la palabra 'admin', darle rol de administrador. Si no, es cliente.
+        const userRole = email.toLowerCase().includes('admin') ? 'admin' : 'client';
+
+        // Guardar rol en Firestore
         await setDoc(doc(db, "users", userCredential.user.uid), {
             name: name,
             email: email,
-            role: 'client',
+            role: userRole,
             createdAt: serverTimestamp()
         });
         
@@ -188,7 +198,19 @@ registerForm.addEventListener('submit', async (e) => {
         registerForm.reset();
     } catch (error) {
         console.error("Error en registro:", error);
-        registerError.textContent = "Error: No se pudo crear la cuenta. Intenta de nuevo.";
+        // Mostrar el mensaje de error real de Firebase para debuguear
+        let errorMessage = "Error: No se pudo crear la cuenta.";
+        if (error.code === 'auth/email-already-in-use') {
+            errorMessage = "Error: Ese correo ya está registrado.";
+        } else if (error.code === 'auth/weak-password') {
+            errorMessage = "Error: La contraseña debe tener al menos 6 caracteres.";
+        } else if (error.code === 'auth/operation-not-allowed') {
+            errorMessage = "Error de Firebase: La autenticación por correo no está activada en tu Firebase Console. (Ve a Firebase > Authentication > Sign-in method y activa Email/Password)";
+        } else if (error.message) {
+            errorMessage = `Error de Firebase: ${error.message}`;
+        }
+        
+        registerError.textContent = errorMessage;
         registerError.style.display = 'block';
     } finally {
         btn.disabled = false;
