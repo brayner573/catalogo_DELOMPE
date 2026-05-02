@@ -1,0 +1,26 @@
+// ============================================================
+// REGLAS STORAGE — storage.rules
+// Copia y pega en: Firebase Console → Storage → Reglas
+// ============================================================
+
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ---- Carpeta: products/ ----
+    match /products/{fileName} {
+
+      // Lectura pública — cualquier persona puede ver las imágenes
+      allow read: if true;
+
+      // Subir imagen — solo usuario autenticado
+      // Valida que sea imagen y máximo 5 MB
+      allow write: if request.auth != null
+                   && request.resource.contentType.matches('image/.*')
+                   && request.resource.size <= 5 * 1024 * 1024;
+
+      // Eliminar imagen — solo usuario autenticado
+      allow delete: if request.auth != null;
+    }
+  }
+}
