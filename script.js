@@ -1,5 +1,5 @@
 import { db } from './firebase-config.js';
-import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+import { collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
 // Configura tu número de WhatsApp aquí (con código de país sin el +)
 const WHATSAPP_NUMBER = "51999999999"; 
@@ -17,21 +17,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let allProducts = [];
 
-    // Función para obtener productos de Firebase
-    async function fetchProducts() {
+    // Función para obtener productos de Firebase (Tiempo real)
+    function fetchProducts() {
         try {
             const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
-            const querySnapshot = await getDocs(q);
-            allProducts = [];
             
-            querySnapshot.forEach((doc) => {
-                allProducts.push({ id: doc.id, ...doc.data() });
+            // onSnapshot se ejecuta cada vez que hay un cambio en la base de datos
+            onSnapshot(q, (querySnapshot) => {
+                allProducts = [];
+                querySnapshot.forEach((doc) => {
+                    allProducts.push({ id: doc.id, ...doc.data() });
+                });
+                
+                loader.style.display = 'none';
+                renderProducts(allProducts);
+            }, (error) => {
+                console.error("Error al obtener productos en tiempo real:", error);
+                loader.style.display = 'none';
+                productsGrid.innerHTML = '<p style="text-align:center; grid-column: 1/-1;">Error de conexión con la base de datos.</p>';
             });
             
-            loader.style.display = 'none';
-            renderProducts(allProducts);
         } catch (error) {
-            console.error("Error al obtener productos:", error);
+            console.error("Error inicial al configurar snapshot:", error);
             loader.style.display = 'none';
             productsGrid.innerHTML = '<p style="text-align:center; grid-column: 1/-1;">Error al cargar los productos. Por favor intenta más tarde.</p>';
         }
@@ -51,19 +58,19 @@ document.addEventListener('DOMContentLoaded', () => {
             card.className = 'product-card';
             
             // Texto para WhatsApp predeterminado
-            const message = encodeURIComponent(`Hola, me interesa el producto: ${product.nombre} (S/${product.precio})`);
+            const message = encodeURIComponent(`Hola, me interesa el producto: ${product.name} (S/${product.price})`);
             const wpLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
 
             card.innerHTML = `
                 ${product.estado && product.estado !== 'Normal' ? `<span class="product-badge">${product.estado}</span>` : ''}
-                <img src="${product.imageUrl || 'img/placeholder.png'}" alt="${product.nombre}" class="product-image" loading="lazy">
+                <img src="${product.image_url || 'img/placeholder.png'}" alt="${product.name}" class="product-image" loading="lazy">
                 <div class="product-info">
-                    <h3 class="product-title">${product.nombre}</h3>
-                    <p class="product-price">S/ ${product.precio}</p>
+                    <h3 class="product-title">${product.name}</h3>
+                    <p class="product-price">S/ ${product.price}</p>
                     <div class="product-details">
-                        <span><strong>Categoría:</strong> ${product.categoria}</span>
-                        <span><strong>Tallas:</strong> ${product.tallas}</span>
-                        <span><strong>Colores:</strong> ${product.colores}</span>
+                        <span><strong>Categoría:</strong> ${product.category}</span>
+                        <span><strong>Tallas:</strong> ${product.tallas || 'S, M, L'}</span>
+                        <span><strong>Colores:</strong> ${product.colores || 'Varios'}</span>
                     </div>
                     <a href="${wpLink}" target="_blank" class="whatsapp-btn">
                         <i class="fab fa-whatsapp"></i> Pedir por WhatsApp
@@ -87,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (category === 'Todos') {
                 renderProducts(allProducts);
             } else {
-                const filtered = allProducts.filter(p => p.categoria === category);
+                const filtered = allProducts.filter(p => p.category === category);
                 renderProducts(filtered);
             }
         });
@@ -97,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleSearch() {
         const searchTerm = searchInput.value.toLowerCase();
         const filtered = allProducts.filter(p => 
-            p.nombre.toLowerCase().includes(searchTerm)
+            p.name.toLowerCase().includes(searchTerm)
         );
         
         // Resetear botones de categoría

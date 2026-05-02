@@ -170,14 +170,37 @@
                 <button id="logoutClientBtn" class="btn-danger"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
             </div>
         </div>
-        <div class="admin-card" style="text-align: center; padding: 3rem;">
-            <i class="fas fa-user-circle" style="font-size: 4rem; color: var(--accent-color); margin-bottom: 1rem;"></i>
-            <h3 id="clientWelcomeText">¡Hola! Bienvenido a tu cuenta.</h3>
-            <p>Desde aquí podrás ver tus compras y favoritos próximamente.</p>
+        
+        <div class="dashboard-layout">
+            <!-- Sidebar Simulada -->
+            <div class="dashboard-sidebar">
+                <div class="profile-summary">
+                    <img src="https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff" alt="Profile" class="profile-pic">
+                    <h3 id="clientWelcomeText">¡Hola! Bienvenido.</h3>
+                    <p class="role-badge">Cliente VIP</p>
+                </div>
+                <ul class="dashboard-menu">
+                    <li class="active"><i class="fas fa-shopping-bag"></i> Mis Pedidos</li>
+                    <li><i class="fas fa-heart"></i> Favoritos</li>
+                    <li><i class="fas fa-user-edit"></i> Editar Perfil</li>
+                </ul>
+            </div>
+            
+            <!-- Contenido Principal -->
+            <div class="dashboard-main">
+                <div class="admin-card">
+                    <h3>Mis Pedidos Recientes</h3>
+                    <div class="empty-state">
+                        <i class="fas fa-box-open" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
+                        <p>Aún no tienes pedidos registrados.</p>
+                        <button class="btn-primary" style="margin-top: 1rem;" onclick="document.getElementById('viewCatalogClientBtn').click()">Ir a comprar</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Dashboard Section -->
+    <!-- Dashboard Section (Admin) -->
     <div id="dashboardSection" class="dashboard-container" style="display: none;">
         <div class="dashboard-header">
             <h2>Panel de Administración</h2>
@@ -187,9 +210,25 @@
             </div>
         </div>
 
-        <div class="admin-grid">
-            <!-- Formulario de Nuevo Producto -->
-            <div class="admin-card">
+        <div class="dashboard-layout">
+            <!-- Sidebar Simulada -->
+            <div class="dashboard-sidebar">
+                <div class="profile-summary">
+                    <img src="https://ui-avatars.com/api/?name=Admin&background=d4af37&color=000" alt="Admin" class="profile-pic">
+                    <h3>Administrador</h3>
+                    <p class="role-badge" style="background: var(--primary-color); color: white;">Admin</p>
+                </div>
+                <ul class="dashboard-menu">
+                    <li class="active"><i class="fas fa-box"></i> Mis Productos</li>
+                    <li><i class="fas fa-chart-line"></i> Estadísticas</li>
+                    <li><i class="fas fa-users"></i> Clientes</li>
+                </ul>
+            </div>
+            
+            <div class="dashboard-main">
+                <div class="admin-grid">
+                    <!-- Formulario de Nuevo Producto -->
+                    <div class="admin-card">
                 <h3>Agregar Producto</h3>
                 <form id="addProductForm">
                     <div class="form-group">

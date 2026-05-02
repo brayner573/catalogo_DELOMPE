@@ -1,6 +1,6 @@
 import { auth, db, storage } from './firebase-config.js';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc, getDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+import { collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, setDoc, getDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-storage.js";
 
 // Elementos UI Autenticación y Navegación
@@ -293,16 +293,16 @@ addProductForm.addEventListener('submit', async (e) => {
 
         uploadStatus.textContent = "Guardando datos...";
 
-        // 2. Guardar en Firestore
+        // 2. Guardar en Firestore con campos en inglés (solicitado por usuario)
         const productData = {
-            nombre: document.getElementById('prodName').value,
-            precio: parseFloat(document.getElementById('prodPrice').value),
-            categoria: document.getElementById('prodCategory').value,
+            name: document.getElementById('prodName').value,
+            price: parseFloat(document.getElementById('prodPrice').value),
+            category: document.getElementById('prodCategory').value,
             tallas: document.getElementById('prodSizes').value,
             colores: document.getElementById('prodColors').value,
             estado: document.getElementById('prodStatus').value,
             descripcion: document.getElementById('prodDesc').value,
-            imageUrl: imageUrl,
+            image_url: imageUrl,
             imagePath: fileName, // Guardamos la ruta para poder borrarla después
             createdAt: serverTimestamp()
         };
@@ -318,8 +318,7 @@ addProductForm.addEventListener('submit', async (e) => {
         imagePreview.style.display = 'none';
         startCameraBtn.innerHTML = '<i class="fas fa-camera"></i> Abrir Cámara';
         
-        // Recargar lista
-        loadAdminProducts();
+        // Ya no es necesario llamar loadAdminProducts() porque usamos onSnapshot
         
         setTimeout(() => { uploadStatus.textContent = ""; }, 3000);
 
@@ -332,31 +331,35 @@ addProductForm.addEventListener('submit', async (e) => {
     }
 });
 
-// Cargar y listar productos
-async function loadAdminProducts() {
+// Cargar y listar productos (Tiempo real)
+function loadAdminProducts() {
     try {
         const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
-        const querySnapshot = await getDocs(q);
-        adminProductsList.innerHTML = '';
         
-        querySnapshot.forEach((docSnap) => {
-            const prod = docSnap.data();
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><img src="${prod.imageUrl}" class="admin-product-img"></td>
-                <td>${prod.nombre}</td>
-                <td>S/ ${prod.precio}</td>
-                <td>${prod.categoria}</td>
-                <td class="action-buttons">
-                    <button class="btn-danger" onclick="deleteProduct('${docSnap.id}', '${prod.imagePath}')">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
-            `;
-            adminProductsList.appendChild(tr);
+        onSnapshot(q, (querySnapshot) => {
+            adminProductsList.innerHTML = '';
+            
+            querySnapshot.forEach((docSnap) => {
+                const prod = docSnap.data();
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><img src="${prod.image_url || 'img/placeholder.png'}" class="admin-product-img"></td>
+                    <td>${prod.name}</td>
+                    <td>S/ ${prod.price}</td>
+                    <td>${prod.category}</td>
+                    <td class="action-buttons">
+                        <button class="btn-danger" onclick="deleteProduct('${docSnap.id}', '${prod.imagePath}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                adminProductsList.appendChild(tr);
+            });
+        }, (error) => {
+            console.error("Error cargando productos del admin:", error);
         });
     } catch (error) {
-        console.error("Error cargando productos:", error);
+        console.error("Error al configurar snapshot:", error);
     }
 }
 
@@ -374,7 +377,7 @@ window.deleteProduct = async (docId, imagePath) => {
             }
             
             alert("Producto eliminado");
-            loadAdminProducts();
+            // loadAdminProducts() no es necesario ya que se actualiza solo
         } catch (error) {
             console.error("Error al eliminar:", error);
             alert("Error al eliminar el producto.");
