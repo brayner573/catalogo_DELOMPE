@@ -14,6 +14,8 @@ const loginError = document.getElementById('loginError');
 const registerError = document.getElementById('registerError');
 const logoutBtn = document.getElementById('logoutBtn');
 const logoutClientBtn = document.getElementById('logoutClientBtn');
+const logoutSidebarBtn = document.getElementById('logoutSidebarBtn');
+const logoutSidebarClientBtn = document.getElementById('logoutSidebarClientBtn');
 const adminLink = document.getElementById('adminLink');
 const adminLinkFooter = document.getElementById('adminLinkFooter');
 const viewCatalogBtn = document.getElementById('viewCatalogBtn');
@@ -67,12 +69,12 @@ onAuthStateChanged(auth, async (user) => {
         }
     } else {
         currentUserRole = null;
-        // Si estábamos en dashboard o panel de cliente, pasamos a catálogo
+        // Si estábamos en dashboard o panel de cliente, pasamos a login
         if (dashboardSection.style.display !== 'none' || clientDashboardSection.style.display !== 'none') {
             dashboardSection.style.display = 'none';
             clientDashboardSection.style.display = 'none';
-            loginSection.style.display = 'none';
-            catalogSection.style.display = 'block';
+            loginSection.style.display = 'block';
+            catalogSection.style.display = 'none';
         }
     }
 });
@@ -209,6 +211,26 @@ logoutClientBtn.addEventListener('click', async () => {
         console.error("Error cerrando sesión:", error);
     }
 });
+
+if (logoutSidebarBtn) {
+    logoutSidebarBtn.addEventListener('click', async () => {
+        try {
+            await signOut(auth);
+        } catch (error) {
+            console.error("Error cerrando sesión:", error);
+        }
+    });
+}
+
+if (logoutSidebarClientBtn) {
+    logoutSidebarClientBtn.addEventListener('click', async () => {
+        try {
+            await signOut(auth);
+        } catch (error) {
+            console.error("Error cerrando sesión:", error);
+        }
+    });
+}
 
 
 // --- 2. Funciones de Cámara ---
