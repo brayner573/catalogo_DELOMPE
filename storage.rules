@@ -1,0 +1,15 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /products/{imageId} {
+      // Cualquiera puede ver las imágenes
+      allow read: if true;
+      
+      // Solo usuarios autenticados pueden subir o modificar imágenes
+      // Validar que sea una imagen y que el tamaño sea menor a 5MB (5 * 1024 * 1024)
+      allow write: if request.auth != null
+                   && request.resource.contentType.matches('image/.*')
+                   && request.resource.size < 5 * 1024 * 1024;
+    }
+  }
+}
