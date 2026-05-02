@@ -23,7 +23,7 @@
         </div>
     </header>
 
-    <div id="catalogSection">
+    <div id="catalogSection" style="display: none;">
 
     <!-- Hero Banner Section -->
     <section class="hero-banner">
@@ -120,14 +120,14 @@
     </div> <!-- Fin catalogSection -->
 
     <!-- Login / Register Section -->
-    <div id="loginSection" class="login-container" style="display: none;">
+    <div id="loginSection" class="login-container">
         <div class="auth-tabs">
-            <button id="tabLogin" class="auth-tab active">Iniciar Sesión</button>
-            <button id="tabRegister" class="auth-tab">Registrarse</button>
+            <button id="tabLogin" class="auth-tab">Iniciar Sesión</button>
+            <button id="tabRegister" class="auth-tab active">Registrarse</button>
         </div>
 
         <!-- Formulario Login -->
-        <form id="loginForm">
+        <form id="loginForm" style="display: none;">
             <h2>Acceso</h2>
             <div class="form-group">
                 <label for="email">Correo Electrónico</label>
@@ -142,7 +142,7 @@
         </form>
 
         <!-- Formulario Registro -->
-        <form id="registerForm" style="display: none;">
+        <form id="registerForm">
             <h2>Crear Cuenta</h2>
             <div class="form-group">
                 <label for="regName">Nombre Completo</label>

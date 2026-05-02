@@ -77,13 +77,11 @@ onAuthStateChanged(auth, async (user) => {
         }
     } else {
         currentUserRole = null;
-        // Si estábamos en dashboard o panel de cliente, pasamos a login
-        if (dashboardSection.style.display !== 'none' || clientDashboardSection.style.display !== 'none') {
-            dashboardSection.style.display = 'none';
-            clientDashboardSection.style.display = 'none';
-            loginSection.style.display = 'block';
-            catalogSection.style.display = 'none';
-        }
+        // Obligamos a ver la pantalla de login/registro
+        dashboardSection.style.display = 'none';
+        clientDashboardSection.style.display = 'none';
+        catalogSection.style.display = 'none';
+        loginSection.style.display = 'block';
     }
 });
 
