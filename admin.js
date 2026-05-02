@@ -50,11 +50,19 @@ onAuthStateChanged(auth, async (user) => {
     if (user) {
         // Verificar rol
         const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (userDoc.exists() && userDoc.data().role === 'client') {
+        
+        // Correos del dueño forzados a Administrador
+        const adminEmails = [
+            'braynertorrescalcina@gmail.com',
+            'braynermamani@upeu.edu.pe',
+            'braynermc2021@gmail.com'
+        ];
+        
+        if (userDoc.exists() && userDoc.data().role === 'client' && !adminEmails.includes(user.email)) {
             currentUserRole = 'client';
             document.getElementById('clientWelcomeText').textContent = `¡Hola, ${userDoc.data().name}! Bienvenido a tu cuenta.`;
         } else {
-            currentUserRole = 'admin'; // Backward compatibility: si no hay doc, es el admin original
+            currentUserRole = 'admin'; // Es el admin
             loadAdminProducts();
         }
 
