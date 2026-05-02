@@ -15,6 +15,7 @@ const registerError = document.getElementById('registerError');
 const logoutBtn = document.getElementById('logoutBtn');
 const logoutClientBtn = document.getElementById('logoutClientBtn');
 const adminLink = document.getElementById('adminLink');
+const adminLinkFooter = document.getElementById('adminLinkFooter');
 const viewCatalogBtn = document.getElementById('viewCatalogBtn');
 const viewCatalogClientBtn = document.getElementById('viewCatalogClientBtn');
 
@@ -92,6 +93,25 @@ adminLink.addEventListener('click', (e) => {
         clientDashboardSection.style.display = 'none';
     }
 });
+
+if (adminLinkFooter) {
+    adminLinkFooter.addEventListener('click', (e) => {
+        e.preventDefault();
+        catalogSection.style.display = 'none';
+        if (currentUser) {
+            if (currentUserRole === 'admin') {
+                dashboardSection.style.display = 'block';
+            } else {
+                clientDashboardSection.style.display = 'block';
+            }
+            loginSection.style.display = 'none';
+        } else {
+            loginSection.style.display = 'block';
+            dashboardSection.style.display = 'none';
+            clientDashboardSection.style.display = 'none';
+        }
+    });
+}
 
 viewCatalogBtn.addEventListener('click', (e) => {
     e.preventDefault();
